@@ -1,11 +1,21 @@
-"use client";
+export const dynamic = "force-dynamic"; 
 
+import { Suspense } from "react";
+
+export default function AboutPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-gray-600">Loading…</div>}>
+      <AboutInner />
+    </Suspense>
+  );
+}
+
+"use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Weather } from "@/lib/types";
 
-
-export default function About() {
+function AboutInner() {
   const sp = useSearchParams();
   const q = (sp.get("q") || "").trim();
 
@@ -17,7 +27,7 @@ export default function About() {
     if (!q) return;
     let ignore = false;
 
-    async function run() {
+    (async () => {
       try {
         setLoading(true);
         setErr(null);
@@ -31,9 +41,8 @@ export default function About() {
       } finally {
         if (!ignore) setLoading(false);
       }
-    }
+    })();
 
-    run();
     return () => { ignore = true; };
   }, [q]);
 
@@ -52,16 +61,13 @@ export default function About() {
     <main className="flex flex-col items-center justify-center h-screen bg-gray-50">
       {loading && <p className="text-gray-600">Loading...</p>}
       {err && <p className="text-red-600">{err}</p>}
-
       {data && (
         <>
           <h1 className="text-3xl font-bold mb-2 text-gray-700">
             {data.city}, {data.country}
           </h1>
           <p className="text-gray-600 capitalize mb-3">{data.desc || "N/A"}</p>
-          {data.icon && (
-            <img src={data.icon} alt={data.desc || "weather"} className="h-12 mb-2" />
-          )}
+          {data.icon && <img src={data.icon} alt={data.desc || "weather"} className="h-12 mb-2" />}
           <div className="bg-white shadow p-6 rounded w-80 text-center text-gray-800">
             <p className="text-2xl font-bold">
               {data.tempC !== undefined ? Math.round(data.tempC) : "—"}°C
